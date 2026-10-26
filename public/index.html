@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spotify Downloader · metadata</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0c10;
+      color: #e8edf2;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .card {
+      max-width: 780px;
+      width: 100%;
+      background: #11161d;
+      border-radius: 2rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+      padding: 2rem 1.8rem;
+      backdrop-filter: blur(8px);
+      transition: box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(29, 185, 84, 0.15) inset;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.4rem;
+      color: #ffffff;
+    }
+
+    h1 span {
+      color: #1ed760;
+      font-weight: 400;
+      font-size: 1.8rem;
+    }
+
+    .subhead {
+      color: #8b98a8;
+      font-size: 0.95rem;
+      margin-bottom: 1.8rem;
+      border-left: 3px solid #1ed760;
+      padding-left: 0.9rem;
+      font-weight: 400;
+      line-height: 1.4;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1.8rem;
+    }
+
+    .input-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .input-wrapper svg {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1.2rem;
+      height: 1.2rem;
+      fill: #4b5a6b;
+      pointer-events: none;
+    }
+
+    input[type="url"] {
+      width: 100%;
+      padding: 1rem 1rem 1rem 3rem;
+      border-radius: 2rem;
+      border: 1.5px solid #1f2a36;
+      background: #0b1016;
+      color: #f0f4f9;
+      font-size: 1rem;
+      font-weight: 450;
+      outline: none;
+      transition: border 0.15s, box-shadow 0.15s;
+      font-family: inherit;
+    }
+
+    input[type="url"]::placeholder {
+      color: #4a5a6b;
+      font-weight: 400;
+      opacity: 0.8;
+    }
+
+    input[type="url"]:focus {
+      border-color: #1ed760;
+      box-shadow: 0 0 0 3px rgba(30, 215, 96, 0.15);
+    }
+
+    .button-row {
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      border: none;
+      border-radius: 2rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+      padding: 0.9rem 1.8rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: inherit;
+      line-height: 1.2;
+      border: 1px solid transparent;
+      flex: 1 0 auto;
+    }
+
+    .btn-primary {
+      background: #1ed760;
+      color: #0a0c10;
+      box-shadow: 0 4px 12px rgba(30, 215, 96, 0.25);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #2ce66f;
+      transform: scale(1.01);
+      box-shadow: 0 6px 16px rgba(30, 215, 96, 0.35);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid #2a3746;
+      color: #b8c5d4;
+    }
+
+    .btn-outline:hover:not(:disabled) {
+      border-color: #1ed760;
+      color: #ffffff;
+      background: rgba(30, 215, 96, 0.05);
+    }
+
+    .btn-outline:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .status {
+      margin-top: 1.8rem;
+      padding: 1rem 1.2rem;
+      border-radius: 1rem;
+      font-size: 0.9rem;
+      background: #0e141b;
+      border-left: 4px solid #2a3746;
+      color: #b8c5d4;
+      word-break: break-word;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .status.error {
+      border-left-color: #f6465d;
+      background: #1a1215;
+      color: #ffb3b3;
+    }
+
+    .status.success {
+      border-left-color: #1ed760;
+      background: #0e1a12;
+      color: #b3ffcf;
+    }
+
+    .status.loading {
+      border-left-color: #f0b90b;
+      background: #1a1710;
+      color: #ffe28c;
+    }
+
+    .status svg {
+      flex-shrink: 0;
+      width: 1.2rem;
+      height: 1.2rem;
+      fill: currentColor;
+    }
+
+    .result-panel {
+      margin-top: 2rem;
+      background: #0b1016;
+      border-radius: 1.5rem;
+      padding: 1.5rem;
+      border: 1px solid #1d2834;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.2rem;
+      flex-wrap: wrap;
+    }
+
+    .result-header h2 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #eef3f8;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      background: #1f2a36;
+      color: #9fb0c2;
+      border-radius: 2rem;
+      padding: 0.25rem 0.8rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge.green {
+      background: rgba(30, 215, 96, 0.15);
+      color: #1ed760;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .meta-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #5b6b7c;
+      font-weight: 600;
+    }
+
+    .meta-value {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #eef3f8;
+      word-break: break-word;
+    }
+
+    .tracklist {
+      margin-top: 1.5rem;
+      max-height: 260px;
+      overflow-y: auto;
+      border-top: 1px solid #1d2834;
+      padding-top: 1rem;
+    }
+
+    .track-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 0.5rem;
+      border-bottom: 1px solid #131c25;
+      font-size: 0.9rem;
+    }
+
+    .track-item:last-child {
+      border-bottom: none;
+    }
+
+    .track-name {
+      font-weight: 500;
+      color: #dfe7ef;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 65%;
+    }
+
+    .track-duration {
+      font-size: 0.8rem;
+      color: #7a8b9f;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .track-artist {
+      color: #7a8b9f;
+      font-size: 0.8rem;
+      margin-left: 0.2rem;
+    }
+
+    .download-btn {
+      background: #1ed760;
+      border: none;
+      color: #0a0c10;
+      border-radius: 2rem;
+      padding: 0.5rem 1.2rem;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .download-btn:hover {
+      background: #2ce66f;
+      transform: scale(1.02);
+    }
+
+    .download-btn svg {
+      width: 0.9rem;
+      height: 0.9rem;
+      fill: currentColor;
+    }
+
+    .footer-note {
+      margin-top: 1.5rem;
+      font-size: 0.75rem;
+      color: #4b5a6b;
+      text-align: center;
+      border-top: 1px solid #1a232e;
+      padding-top: 1rem;
+    }
+
+    .flex-spacer {
+      flex: 1;
+    }
+
+    @media (max-width: 600px) {
+      .card {
+        padding: 1.5rem 1.2rem;
+      }
+
+      .meta-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .button-row .btn {
+        flex: 1 1 100%;
+      }
+
+      h1 {
+        font-size: 1.6rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="#1ed760" style="margin-right: 4px;">
+        <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+      </svg>
+      Spotify <span>Downloader</span>
+    </h1>
+    <div class="subhead">
+      Download metadata (JSON) for tracks, albums, playlists, artists, episodes & shows.
+    </div>
+
+    <!-- Input + buttons -->
+    <div class="input-group">
+      <div class="input-wrapper">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
+        </svg>
+        <input type="url" id="spotifyUrl" placeholder="https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="button-row">
+        <button class="btn btn-primary" id="fetchBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
+          </svg>
+          Fetch metadata
+        </button>
+        <button class="btn btn-outline" id="downloadJsonBtn" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+          </svg>
+          Download JSON
+        </button>
+        <button class="btn btn-outline" id="clearBtn">Clear</button>
+      </div>
+    </div>
+
+    <!-- Status message -->
+    <div class="status" id="statusMessage">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+      </svg>
+      <span id="statusText">Ready. Paste a Spotify link and press “Fetch metadata”.</span>
+    </div>
+
+    <!-- Result panel (hidden by default) -->
+    <div class="result-panel" id="resultPanel" style="display: none;">
+      <div class="result-header">
+        <h2>
+          <span id="resultTitle">Result</span>
+          <span class="badge" id="resultTypeBadge">track</span>
+        </h2>
+        <span class="badge green" id="itemIdBadge">—</span>
+      </div>
+      <div class="meta-grid" id="metaGrid"></div>
+      <div class="tracklist" id="tracklistContainer"></div>
+    </div>
+
+    <div class="footer-note">
+      Metadata only · No audio files are downloaded · Works with open.spotify.com links
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      "use strict";
+
+      // DOM elements
+      const spotifyUrlInput = document.getElementById("spotifyUrl");
+      const fetchBtn = document.getElementById("fetchBtn");
+      const downloadJsonBtn = document.getElementById("downloadJsonBtn");
+      const clearBtn = document.getElementById("clearBtn");
+      const statusMessage = document.getElementById("statusMessage");
+      const statusText = document.getElementById("statusText");
+      const resultPanel = document.getElementById("resultPanel");
+      const resultTitle = document.getElementById("resultTitle");
+      const resultTypeBadge = document.getElementById("resultTypeBadge");
+      const itemIdBadge = document.getElementById("itemIdBadge");
+      const metaGrid = document.getElementById("metaGrid");
+      const tracklistContainer = document.getElementById("tracklistContainer");
+
+      let lastResult = null;      // stores { type, result, raw? } for download
+      let lastRaw = null;
+
+      /* ------------------------------------------------------------------ */
+      /* Helpers                                                             */
+      /* ------------------------------------------------------------------ */
+
+      function setStatus(message, type = "info") {
+        statusMessage.className = "status";
+        if (type === "error") statusMessage.classList.add("error");
+        if (type === "success") statusMessage.classList.add("success");
+        if (type === "loading") statusMessage.classList.add("loading");
+
+        // update icon
+        const iconSvg = statusMessage.querySelector("svg");
+        if (type === "error") {
+          iconSvg.innerHTML = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>';
+        } else if (type === "success") {
+          iconSvg.innerHTML = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>';
+        } else if (type === "loading") {
+          iconSvg.innerHTML = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>';
+        } else {
+          iconSvg.innerHTML = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>';
+        }
+
+        statusText.textContent = message;
+      }
+
+      function formatDuration(ms) {
+        if (ms === null || ms === undefined) return "";
+        const totalSeconds = Math.round(ms / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        if (hours > 0) {
+          return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+        }
+        return `${minutes}:${String(seconds).padStart(2, "0")}`;
+      }
+
+      function formatNumber(num) {
+        if (num === null || num === undefined) return "—";
+        return Number(num).toLocaleString();
+      }
+
+      function createMetaItem(label, value) {
+        const div = document.createElement("div");
+        div.className = "meta-item";
+        const labelEl = document.createElement("span");
+        labelEl.className = "meta-label";
+        labelEl.textContent = label;
+        const valueEl = document.createElement("span");
+        valueEl.className = "meta-value";
+        valueEl.textContent = value !== null && value !== undefined && value !== "" ? value : "—";
+        div.appendChild(labelEl);
+        div.appendChild(valueEl);
+        return div;
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* Render result based on type                                         */
+      /* ------------------------------------------------------------------ */
+
+      function renderResult(payload) {
+        // payload = { type, result, raw? }
+        const { type, result } = payload;
+
+        resultPanel.style.display = "block";
+        resultTitle.textContent = result.name || result.title || "Metadata";
+        resultTypeBadge.textContent = type;
+        itemIdBadge.textContent = result.id ? result.id.slice(0, 12) : "—";
+
+        metaGrid.innerHTML = "";
+        tracklistContainer.innerHTML = "";
+        tracklistContainer.style.display = "none";
+
+        // ----- TRACK -----
+        if (type === "track") {
+          const fields = [
+            ["Title", result.title],
+            ["Artist", result.artist],
+            ["Album", result.album],
+            ["Release date", result.releaseDate || result.year],
+            ["Duration", result.duration || formatDuration(result.durationMs)],
+            ["Track #", result.trackNumber],
+            ["Disc #", result.discNumber],
+            ["Explicit", result.explicit ? "Yes" : "No"],
+            ["Playcount", result.playcount !== null ? formatNumber(result.playcount) : "—"],
+            ["Album cover", result.albumCoverURL ? "✓ available" : "—"],
+          ];
+          fields.forEach(([label, value]) => {
+            metaGrid.appendChild(createMetaItem(label, value));
+          });
+          downloadJsonBtn.disabled = false;
+        }
+
+        // ----- ALBUM -----
+        else if (type === "album") {
+          const fields = [
+            ["Album", result.name],
+            ["Artist", result.artist],
+            ["Release date", result.releaseDate || result.year],
+            ["Label", result.label],
+            ["Tracks", result.trackCount],
+            ["Duration", result.duration || formatDuration(result.durationMs)],
+            ["Copyrights", result.copyrights?.length ? result.copyrights.join(" / ") : "—"],
+            ["Cover", result.albumCoverURL ? "✓ available" : "—"],
+          ];
+          fields.forEach(([label, value]) => {
+            metaGrid.appendChild(createMetaItem(label, value));
+          });
+
+          if (result.tracks && result.tracks.length) {
+            tracklistContainer.style.display = "block";
+            result.tracks.forEach((t, idx) => {
+              const item = document.createElement("div");
+              item.className = "track-item";
+              item.innerHTML = `
+                <div style="display:flex; align-items:center; gap:0.5rem; overflow:hidden;">
+                  <span style="color:#5b6b7c; min-width:1.5rem; font-size:0.8rem;">${idx + 1}</span>
+                  <span class="track-name">${escapeHtml(t.title)}</span>
+                  <span class="track-artist">${escapeHtml(t.artist)}</span>
+                </div>
+                <span class="track-duration">${t.duration || formatDuration(t.durationMs)}</span>
+              `;
+              tracklistContainer.appendChild(item);
+            });
+          }
+          downloadJsonBtn.disabled = false;
+        }
+
+        // ----- PLAYLIST -----
+        else if (type === "playlist") {
+          const fields = [
+            ["Playlist", result.name],
+            ["Owner", result.owner],
+            ["Description", result.description || "—"],
+            ["Followers", formatNumber(result.followerCount)],
+            ["Tracks", result.trackCount],
+            ["Duration", result.duration || formatDuration(result.durationMs)],
+          ];
+          fields.forEach(([label, value]) => {
+            metaGrid.appendChild(createMetaItem(label, value));
+          });
+
+          if (result.tracks && result.tracks.length) {
+            tracklistContainer.style.display = "block";
+            result.tracks.forEach((t, idx) => {
+              const item = document.createElement("div");
+              item.className = "track-item";
+              item.innerHTML = `
+                <div style="display:flex; align-items:center; gap:0.5rem; overflow:hidden;">
+                  <span style="color:#5b6b7c; min-width:1.5rem; font-size:0.8rem;">${idx + 1}</span>
+                  <span class="track-name">${escapeHtml(t.title)}</span>
+                  <span class="track-artist">${escapeHtml(t.artist)}</span>
+                </div>
+                <span class="track-duration">${t.duration || formatDuration(t.durationMs)}</span>
+              `;
+              tracklistContainer.appendChild(item);
+            });
+          }
+          downloadJsonBtn.disabled = false;
+        }
+
+        // ----- ARTIST -----
+        else if (type === "artist") {
+          const fields = [
+            ["Artist", result.name],
+            ["Verified", result.verified ? "✓" : "—"],
+            ["Followers", formatNumber(result.followerCount)],
+            ["Monthly listeners", formatNumber(result.monthlyListeners)],
+            ["World rank", result.worldRank !== null ? `#${result.worldRank}` : "—"],
+            ["Biography", result.biography ? result.biography.slice(0, 120) + (result.biography.length > 120 ? "…" : "") : "—"],
+          ];
+          fields.forEach(([label, value]) => {
+            metaGrid.appendChild(createMetaItem(label, value));
+          });
+
+          if (result.topTracks && result.topTracks.length) {
+            tracklistContainer.style.display = "block";
+            result.topTracks.forEach((t, idx) => {
+              const item = document.createElement("div");
+              item.className = "track-item";
+              item.innerHTML = `
+                <div style="display:flex; align-items:center; gap:0.5rem; overflow:hidden;">
+                  <span style="color:#5b6b7c; min-width:1.5rem; font-size:0.8rem;">${idx + 1}</span>
+                  <span class="track-name">${escapeHtml(t.title)}</span>
+                  <span class="track-artist">${escapeHtml(t.album)}</span>
+                </div>
+                <span class="track-duration">${t.duration || formatDuration(t.durationMs)}</span>
+              `;
+              tracklistContainer.appendChild(item);
+            });
+          }
+          downloadJsonBtn.disabled = false;
+        }
+
+        // ----- EPISODE -----
+        else if (type === "episode") {
+          const fields = [
+            ["Episode", result.title],
+            ["Show", result.show],
+            ["Release date", result.releaseDate],
+            ["Duration", result.duration || formatDuration(result.durationMs)],
+            ["Explicit", result.explicit ? "Yes" : "No"],
+            ["Description", result.description ? result.description.slice(0, 120) + (result.description.length > 120 ? "…" : "") : "—"],
+            ["Playcount", formatNumber(result.playcount)],
+          ];
+          fields.forEach(([label, value]) => {
+            metaGrid.appendChild(createMetaItem(label, value));
+          });
+          downloadJsonBtn.disabled = false;
+        }
+
+        // ----- SHOW -----
+        else if (type === "show") {
+          const fields = [
+            ["Show", result.name],
+            ["Publisher", result.publisher],
+            ["Episodes", result.episodeCount],
+            ["Explicit", result.explicit ? "Yes" : "No"],
+            ["Description", result.description ? result.description.slice(0, 120) + (result.description.length > 120 ? "…" : "") : "—"],
+          ];
+          fields.forEach(([label, value]) => {
+            metaGrid.appendChild(createMetaItem(label, value));
+          });
+          downloadJsonBtn.disabled = false;
+        }
+
+        // store for download
+        lastResult = payload;
+        lastRaw = payload.raw || null;
+      }
+
+      // Basic HTML escape for track names etc.
+      function escapeHtml(str) {
+        if (!str) return "";
+        return String(str).replace(/[&<>"]/g, function(m) {
+          if (m === "&") return "&amp;";
+          if (m === "<") return "&lt;";
+          if (m === ">") return "&gt;";
+          if (m === '"') return "&quot;";
+          return m;
+        });
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* Fetch logic                                                         */
+      /* ------------------------------------------------------------------ */
+
+      async function fetchMetadata() {
+        const url = spotifyUrlInput.value.trim();
+        if (!url) {
+          setStatus("Please paste a Spotify URL first.", "error");
+          return;
+        }
+
+        // basic validation
+        if (!/^https?:\/\/open\.spotify\.com\/(?:intl-[a-zA-Z-]+\/)?(track|album|playlist|artist|episode|show)\//i.test(url) &&
+            !/^spotify:(track|album|playlist|artist|episode|show):[A-Za-z0-9]{22}$/i.test(url)) {
+          setStatus("Invalid Spotify URL. Make sure it's a track, album, playlist, artist, episode or show link.", "error");
+          return;
+        }
+
+        // reset UI
+        resultPanel.style.display = "none";
+        downloadJsonBtn.disabled = true;
+        lastResult = null;
+        lastRaw = null;
+        setStatus("Fetching metadata from Spotify…", "loading");
+        fetchBtn.disabled = true;
+
+        try {
+          // Use the /api/lookup endpoint (serverless function)
+          const response = await fetch(`/api/lookup?url=${encodeURIComponent(url)}&raw=1`, {
+            method: "GET",
+            headers: { "Accept": "application/json" }
+          });
+
+          if (!response.ok) {
+            const errBody = await response.json().catch(() => ({}));
+            throw new Error(errBody.error || `Request failed with status ${response.status}`);
+          }
+
+          const data = await response.json();
+          // data should be { type, result, raw? }
+          if (!data.type || !data.result) {
+            throw new Error("Unexpected response format from server.");
+          }
+
+          renderResult(data);
+          setStatus(`✅ ${data.type} metadata loaded successfully.`, "success");
+        } catch (error) {
+          console.error("Fetch error:", error);
+          setStatus(`❌ ${error.message || "Failed to fetch metadata."}`, "error");
+          resultPanel.style.display = "none";
+          downloadJsonBtn.disabled = true;
+          lastResult = null;
+        } finally {
+          fetchBtn.disabled = false;
+        }
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* Download JSON                                                       */
+      /* ------------------------------------------------------------------ */
+
+      function downloadJson() {
+        if (!lastResult) {
+          setStatus("No metadata to download. Fetch a track first.", "error");
+          return;
+        }
+
+        const { type, result } = lastResult;
+        const exportData = {
+          fetchedAt: new Date().toISOString(),
+          type: type,
+          result: result
+        };
+        if (lastRaw) {
+          exportData.raw = lastRaw;
+        }
+
+        const jsonStr = JSON.stringify(exportData, null, 2);
+        const blob = new Blob([jsonStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `spotify-${type}-${result.id || "metadata"}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        setStatus(`📥 Download started: spotify-${type}-${result.id || "metadata"}.json`, "success");
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* Clear                                                               */
+      /* ------------------------------------------------------------------ */
+
+      function clearAll() {
+        spotifyUrlInput.value = "";
+        resultPanel.style.display = "none";
+        metaGrid.innerHTML = "";
+        tracklistContainer.innerHTML = "";
+        tracklistContainer.style.display = "none";
+        downloadJsonBtn.disabled = true;
+        lastResult = null;
+        lastRaw = null;
+        setStatus("Cleared. Ready for a new Spotify link.", "info");
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* Event listeners                                                     */
+      /* ------------------------------------------------------------------ */
+
+      fetchBtn.addEventListener("click", fetchMetadata);
+      downloadJsonBtn.addEventListener("click", downloadJson);
+      clearBtn.addEventListener("click", clearAll);
+
+      spotifyUrlInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          fetchMetadata();
+        }
+      });
+
+      // Example: prefill a sample track (but user can overwrite)
+      // spotifyUrlInput.value = "https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT";
+
+    })();
+  </script>
+</body>
+</html>
